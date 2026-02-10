@@ -1,41 +1,30 @@
-name: Perpetual Telegram Bot
+name: YouTube Downloader Bot
 
 on:
   schedule:
-    - cron: "0 */4 * * *" # تشغيل احتياطي كل 4 ساعات
-  workflow_dispatch: # للتشغيل اليدوي
-  repository_dispatch:
-    types: [restart_bot]
+    - cron: "0 */5 * * *" # إعادة تشغيل تلقائية كل 5 ساعات
+  workflow_dispatch:      # للسماح لك بالتشغيل اليدوي
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install python-telegram-bot yt-dlp
 
-      - name: Run bot with Timeout
+      - name: Start Bot
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         run: |
-          # سيتم تشغيل البوت لمدة 5 ساعات و 50 دقيقة ثم يتوقف بأمان
-          # هذا يمنع GitHub من قتله فجأة ويسمح للخطوة التالية بالعمل
-          timeout 21000s python bot.py || echo "Time is up, restarting..."
-
-      - name: Trigger next run
-        if: always() # يضمن التشغيل حتى لو توقف البوت بسبب خطأ
-        run: |
-          curl -X POST -H "Authorization: token ${{ secrets.MY_GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/${{ github.repository }}/dispatches \
-          -d '{"event_type": "restart_bot"}'
+          # التشغيل المباشر يبقي الأكشن حياً طالما البوت يعمل
+          python bot.py
