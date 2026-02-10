@@ -1,15 +1,20 @@
-name: YouTube Downloader Bot
+name: Perpetual Bot 24/7
 
 on:
   schedule:
-    - cron: "0 */5 * * *" # إعادة تشغيل تلقائية كل 5 ساعات
-  workflow_dispatch:      # للسماح لك بالتشغيل اليدوي
+    - cron: "0 */5 * * *" # إعادة تشغيل كل 5 ساعات لضمان الاستمرارية
+  workflow_dispatch:      # تشغيل يدوي
+
+# يمنع تشغيل أكثر من نسخة في نفس الوقت (حل مشكلة التكرار)
+concurrency:
+  group: telegram_bot
+  cancel-in-progress: true
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -22,9 +27,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install python-telegram-bot yt-dlp
 
-      - name: Start Bot
+      - name: Run Persistent Bot
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         run: |
-          # التشغيل المباشر يبقي الأكشن حياً طالما البوت يعمل
-          python bot.py
+          # استخدام -u يمنع التخزين المؤقت (Buffering) ويجبر GitHub على إبقاء الجلسة حية
+          python -u bot.py
